@@ -3,7 +3,7 @@ const cors = require("cors");
 const express = require("express");
 const app = express();
 require("./config/db");
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3030;
 
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
@@ -11,6 +11,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/users", require("./routes/usersRt"));
+app.use("/api/products", require("./routes/productsRt"))
 
 app.listen(PORT, (err) => {
   !err

@@ -1,5 +1,5 @@
 const bcrypt = require("../utils/handlePass");
-const {User} = require("../models/usersMd");
+const {User} = require("../models/schemas");
 const public_url = process.env.public_url;
 //Get all users
 const getAllUsers = async (req, res, next) => {
