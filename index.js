@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/users", require("./routes/usersRt"));
-app.use("/api/products", require("./routes/productsRt"))
+app.use("/api/products", require("./routes/productsRt"));
 
 app.listen(PORT, (err) => {
   !err
@@ -27,6 +27,7 @@ app.use((req, res, next) => {
 });
 
 app.use((error, req, res, next) => {
+  if(!error.status) error.status = 400;
   res
     .status(error.status)
     .json({ status: error.status, message: error.message });

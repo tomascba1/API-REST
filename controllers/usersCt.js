@@ -1,5 +1,5 @@
 const bcrypt = require("../utils/handlePass");
-const {User} = require("../models/schemas");
+const {User} = require("../Schemas/userSchema");
 const jwt = require("../utils/handleJWT")
 const public_url = process.env.public_url;
 //Get all users
@@ -16,14 +16,19 @@ const getAllUsers = async (req, res, next) => {
 };
 //Create user
 const createUser = async (req, res, next) => {
-  const profilePic = `${public_url}/storage/${req.file.filename}`
+    const profilePic = ""
+  if(req.file){
+    profilePic = `${public_url}/storage/${req.file.filename}`
+  }
   const password = await bcrypt.hashPassword(req.body.password);
   const newUser = new User({ ...req.body, profilePic, password });
-  newUser.save((error) => {
+  newUser.save((error, result) => {
     if (error){
       error.status = 400; 
       next(error);
-    } else { res.status(200);}
+    } else { 
+      res.status(200).json(newUser)
+    }
   });
 };
 
