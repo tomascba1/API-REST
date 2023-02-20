@@ -1,0 +1,33 @@
+<section>
+  <div>
+    <form action="/api/users/reset/{{token}}" method="post">
+      <input type="text" name="name" value="{{tokenStatus.name}}" hidden />
+      <input
+        type="password"
+        maxlength="18"
+        placeholder="New Password"
+        autocomplete="new-password"
+        name="password_1"
+        autofocus
+      />
+      {{#errBelowInput arrWarnings "password_1"}}
+        <p>
+          {{msg}}
+        </p>
+      {{/errBelowInput}}
+      <input
+        type="password"
+        maxlength="18"
+        placeholder="Repeat New Password"
+        autocomplete="new-password"
+        name="password_2"
+      />
+      {{#errBelowInput arrWarnings "password_2"}}
+        <p>
+          {{msg}}
+        </p>
+      {{/errBelowInput}}
+      <input type="submit" value="Change Password" />
+    </form>
+  </div>
+</section>

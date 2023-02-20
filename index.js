@@ -3,13 +3,27 @@ const cors = require("cors");
 const express = require("express");
 const app = express();
 require("./config/db");
+const path = require("path");
+const exphbs = require("express-handlebars");
 const PORT = process.env.PORT || 3030;
 
-app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
+//Handlebars Config
+app.engine(".hbs", exphbs.engine({
+    defaultLayout: "main",
+    extname: "hbs",
+    helpers: require("./utils/hbsFunctions"),
+  })
+);
+app.set("view engine", "hbs");
+app.set("views", "./views");
+
+//API Config
+app.use(express.static(path.join(__dirname, "/public")));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
+//API Routes
 app.use("/api/users", require("./routes/usersRt"));
 app.use("/api/products", require("./routes/productsRt"));
 
@@ -19,6 +33,7 @@ app.listen(PORT, (err) => {
     : console.log(`Server down: ${err}`);
 });
 
+//Error Handler
 app.use((req, res, next) => {
   let error = new Error();
   error.message = "Resource Not Found";
@@ -27,7 +42,7 @@ app.use((req, res, next) => {
 });
 
 app.use((error, req, res, next) => {
-  if(!error.status) error.status = 400;
+  if (!error.status) error.status = 400;
   res
     .status(error.status)
     .json({ status: error.status, message: error.message });

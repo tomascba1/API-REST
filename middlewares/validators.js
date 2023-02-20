@@ -26,4 +26,28 @@ const validatorCreateUser = [
     }
 ]
 
-module.exports = {validatorCreateUser}
+const resetPassword = [
+    check("password_1").trim()
+    .notEmpty().withMessage("Field cannot be empty")
+    .isLength({min: 6, max: 18}).withMessage("Password must be between 6 and 18 characters"),
+    check("password_2").notEmpty().withMessage("Field cannot be empty")
+    .custom((value, {req}) =>{
+        if(value !== req.body.password_1){
+            throw new Error("Password must be the same")
+        }
+        return true
+    }),
+    (req, res, next) =>{
+        const token = req.params.token
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            const arrWarnings = errors.array()
+            res.render("reset", {arrWarnings, token})
+        } else {
+            return next()
+        }
+    }
+
+]
+
+module.exports = {validatorCreateUser, resetPassword}
