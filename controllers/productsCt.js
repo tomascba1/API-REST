@@ -1,5 +1,7 @@
 const Product = require("../Schemas/productSchema");
 
+
+//List all products
 const getProducts = async (req, res, next) => {
   const data = await Product.find();
   try {
@@ -10,6 +12,7 @@ const getProducts = async (req, res, next) => {
   }
 };
 
+//Find a product by query
 const findByTitle = (req, res, next) => {
   const { query } = req.params;
   Product.find({ $text: { $search: query } }, (err, result) => {
@@ -18,6 +21,8 @@ const findByTitle = (req, res, next) => {
   });
 };
 
+
+//Create new product in DB (Only ADMIN)
 const createProduct = (req, res, next) => {
   const newProduct = new Product({ ...req.body });
   newProduct.save((error) => {
@@ -30,6 +35,7 @@ const createProduct = (req, res, next) => {
   });
 };
 
+//Update prodcut details in DB (Only ADMIN)
 const updateProduct = async (req, res, next) => {
   try {
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
@@ -41,6 +47,7 @@ const updateProduct = async (req, res, next) => {
   }
 };
 
+//Delete a product in DB (Only ADMIN)
 const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);

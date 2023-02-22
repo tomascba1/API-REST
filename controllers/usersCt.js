@@ -3,6 +3,8 @@ const {User} = require("../Schemas/userSchema");
 const jwt = require("../utils/handleJWT")
 const transporter = require("../utils/nodemailer")
 const public_url = process.env.public_url;
+
+
 //Get all users
 const getAllUsers = async (req, res, next) => {
   const data = await User.find();
@@ -15,6 +17,8 @@ const getAllUsers = async (req, res, next) => {
     next(error)
   }
 };
+
+
 //Create user
 const createUser = async (req, res, next) => {
     const profilePic = ""
@@ -22,7 +26,7 @@ const createUser = async (req, res, next) => {
     profilePic = `${public_url}/storage/${req.file.filename}`
   }
   const password = await bcrypt.hashPassword(req.body.password);
-  const newUser = new User({ ...req.body, profilePic, password });
+  const newUser = new User({ ...req.body, profilePic, password, isAdmin: false});
   newUser.save((error, result) => {
     if (error){
       error.status = 400; 
@@ -33,6 +37,7 @@ const createUser = async (req, res, next) => {
   });
 };
 
+//Login User
 const loginUser = async (req, res, next) =>{
   let error = new Error("Email or Password invalid")
   const user = await User.find().where({email: req.body.email})
@@ -49,13 +54,16 @@ const loginUser = async (req, res, next) =>{
     const userForToken = {
       name: user[0].name,
       userName : user[0].userName,
-      email: user[0].email
+      email: user[0].email,
+      isAdmin: user[0].isAdmin
     }
     const accesToken =  await jwt.tokenSing(userForToken, "24h")
     res.status(200).json({message: "Acces granted", token: accesToken, userData: userForToken})
 
   }
 
+
+//Forgot password handler
   const forgotPass = async (req, res, next) =>{
     error = new Error("email not found")
     const user = await User.find().where({email: req.body.email})
@@ -85,22 +93,24 @@ const loginUser = async (req, res, next) =>{
     })
   }
 
+//reset pass token checker
   const resetPass = async (req, res, next) =>{
     const {token} = req.params
-    tokenStatus = await jwt.tokenVerify(token)
+    tokenStatus = await jwt.userTokenVerify(token)
     if(tokenStatus instanceof Error){
       return next(tokenStatus)
     }  
       res.render("reset", {token, tokenStatus})
   }
 
+
+//saving the new password in DB
   const saveNewPassword = async (req, res, next) =>{
     const {token} = req.params
-    const tokenStatus = await jwt.tokenVerify(token)
+    const tokenStatus = await jwt.userTokenVerify(token)
     if(tokenStatus instanceof Error){
       return next(tokenStatus)
     } const newPassword = await bcrypt.hashPassword(req.body.password_1)
-    console.log(newPassword)
     try {
       const updatedUser = await User.findByIdAndUpdate(tokenStatus.id, {password: newPassword})
       res.status(200).json({message: "Password change for user "+tokenStatus.name})
@@ -109,6 +119,8 @@ const loginUser = async (req, res, next) =>{
     }
   }
 
+
+// Updating users details
 const updateUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, {new: true});
@@ -118,6 +130,8 @@ const updateUser = async (req, res, next) => {
   }
 };
 
+
+//Delete an user by ID
 const deleteUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -127,4 +141,15 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUsers, deleteUser, createUser, updateUser, loginUser, forgotPass, resetPass, saveNewPassword};
+const makeAdmin = async (req, res, next) =>{
+  try {
+    const newAdmin = await User.findByIdAndUpdate(req.params.id, req.body, {new: true})
+    console.log(req.body);
+       return res.status(200).json({message: `User: ${newAdmin.name} is admin: ${newAdmin.isAdmin}`})
+  } catch (error) {
+    error.message = "Only Allowed IP can do this"
+    next(error)
+  }
+}
+
+module.exports = { getAllUsers, deleteUser, createUser, updateUser, loginUser, forgotPass, resetPass, saveNewPassword, makeAdmin};
